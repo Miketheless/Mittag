@@ -100,10 +100,14 @@ function renderRowView(m) {
   const aktiv = m.aktiv ? "1" : "0";
   const vText = m.vorspeise ? escapeHtml(m.vorspeise) : '<span class="text-muted">–</span>';
   const hText = m.hauptspeise ? escapeHtml(m.hauptspeise) : '<span class="text-muted">–</span>';
+  const aktivBadge = m.aktiv
+    ? '<span class="aktiv-badge yes">Aktiv</span>'
+    : '<span class="aktiv-badge no">Inaktiv</span>';
   return `<tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
     <td class="date-cell">${formatDateDisplay(m.date)}</td>
     <td class="view-vorspeise">${vText}</td>
     <td class="view-hauptspeise">${hText}</td>
+    <td class="aktiv-cell">${aktivBadge}</td>
     <td class="action-cell"><button type="button" class="btn-edit" data-date="${m.date}">Ändern</button></td>
   </tr>`;
 }
@@ -113,11 +117,12 @@ function renderRowEdit(m) {
   const h = escapeHtml(m.hauptspeise || "");
   const preisBasis = m.preis_basis || 15;
   const preisRabatt = m.preis_rabatt || 12;
-  const aktiv = m.aktiv ? "1" : "0";
-  return `<tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
+  const aktivChecked = m.aktiv ? " checked" : "";
+  return `<tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}">
     <td class="date-cell">${formatDateDisplay(m.date)}</td>
     <td><input type="text" class="edit-vorspeise" value="${v}" placeholder="z.B. Suppe des Tages"></td>
     <td><input type="text" class="edit-hauptspeise" value="${h}" placeholder="z.B. Schnitzel mit Erdäpfelsalat"></td>
+    <td class="aktiv-cell"><label><input type="checkbox" class="edit-aktiv"${aktivChecked}> Aktiv (auf Buchungsseite anzeigen)</label></td>
     <td class="action-cell">
       <button type="button" class="btn-save-row">Speichern</button>
       <button type="button" class="btn-cancel">Abbrechen</button>
@@ -141,6 +146,7 @@ function renderMonthTable(menus) {
           <th>Datum</th>
           <th>Vorspeise</th>
           <th>Hauptspeise</th>
+          <th>Aktiv</th>
           <th>Aktion</th>
         </tr>
       </thead>
@@ -152,7 +158,7 @@ function renderMonthTable(menus) {
     const kw = getCalendarWeek(date);
     if (kw !== lastKw) {
       lastKw = kw;
-      html += `<tr class="kw-row"><td colspan="4">KW ${kw}</td></tr>`;
+      html += `<tr class="kw-row"><td colspan="5">KW ${kw}</td></tr>`;
     }
     html += renderRowView(m);
   }
@@ -198,8 +204,10 @@ function initMonthTableClickHandlers() {
       if (!menu) return;
       const vInput = row.querySelector(".edit-vorspeise");
       const hInput = row.querySelector(".edit-hauptspeise");
+      const aktivCheck = row.querySelector(".edit-aktiv");
       const vorspeise = vInput?.value?.trim() || "";
       const hauptspeise = hInput?.value?.trim() || "";
+      const aktiv = aktivCheck?.checked ?? false;
       btnSave.disabled = true;
       btnSave.textContent = "…";
       try {
@@ -209,10 +217,10 @@ function initMonthTableClickHandlers() {
           hauptspeise,
           preis_basis: parseInt(row.dataset.preisBasis, 10) || 15,
           preis_rabatt: parseInt(row.dataset.preisRabatt, 10) || 12,
-          aktiv: row.dataset.aktiv === "1"
+          aktiv
         });
         if (result.ok) {
-          const updated = { ...menu, vorspeise, hauptspeise };
+          const updated = { ...menu, vorspeise, hauptspeise, aktiv };
           const idx = currentMenusData.findIndex((m) => m.date === date);
           if (idx >= 0) currentMenusData[idx] = updated;
           const temp = document.createElement("tbody");

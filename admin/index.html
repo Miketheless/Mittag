@@ -25,7 +25,12 @@
     .month-table th { background: var(--color-primary); color: white; font-weight: 600; }
     .month-table .kw-row td { background: var(--color-primary-faded); font-weight: 700; padding: 0.5rem 1rem; }
     .month-table .date-cell { white-space: nowrap; font-weight: 500; min-width: 120px; }
+    .month-table .aktiv-cell { width: 1%; text-align: center; white-space: nowrap; }
     .month-table .action-cell { white-space: nowrap; width: 1%; }
+    .month-table .aktiv-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    .month-table .aktiv-badge.yes { background: #d4edda; color: #155724; }
+    .month-table .aktiv-badge.no { background: #f8d7da; color: #721c24; }
+    .month-table .edit-aktiv { width: 18px; height: 18px; margin-right: 0.25rem; vertical-align: middle; }
     .month-table .btn-edit, .month-table .btn-save-row, .month-table .btn-cancel { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
     .month-table .btn-edit { background: var(--color-primary); color: white; }
     .month-table .btn-edit:hover { background: var(--color-primary-dark, #2d6a5a); }
@@ -69,7 +74,7 @@
 
   <!-- Tab: Menü bearbeiten (Monatsübersicht) -->
   <div id="tab-menu" class="tab-pane active">
-    <p style="margin-bottom: 1.5rem; color: var(--color-text-muted);">Monat wählen. Zum Bearbeiten auf „Ändern“ klicken, dann speichern. Danach ist die Zeile wieder schreibgeschützt.</p>
+    <p style="margin-bottom: 1.5rem; color: var(--color-text-muted);">Monat wählen. Zum Bearbeiten auf „Ändern“ klicken, dann speichern. <strong>Nur Menüs mit „Aktiv“ werden auf der Buchungsseite angezeigt.</strong></p>
     <div class="month-picker-row">
       <label for="menu-month">Monat:</label>
       <select id="menu-month"></select>
