@@ -11,23 +11,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    .admin-mittag { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    .admin-mittag { max-width: 1000px; margin: 0 auto; padding: 2rem; }
     .mittag-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); }
     .mittag-tab { padding: 0.75rem 1.5rem; background: var(--color-bg); border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; border-radius: 8px 8px 0 0; transition: all 0.2s; }
     .mittag-tab:hover { background: var(--color-primary-faded); }
     .mittag-tab.active { background: var(--color-primary); color: white; }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-    .day-form { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-soft); }
-    .day-form h3 { margin: 0 0 1rem 0; font-size: 1.2rem; color: var(--color-primary); }
-    .day-form label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.85rem; }
-    .day-form input[type="text"], .day-form input[type="number"], .day-form input[type="date"] {
-      width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 8px; margin-bottom: 1rem; font-size: 1rem;
-    }
-    .aktiv-row { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }
-    .aktiv-row input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--color-primary); }
-    .btn-save { background: var(--color-primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    .btn-save:hover { background: var(--color-primary-dark); }
+    .month-picker-row { margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .month-picker-row select { padding: 0.5rem 1rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem; }
+    .month-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .month-table th, .month-table td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border); }
+    .month-table th { background: var(--color-primary); color: white; font-weight: 600; }
+    .month-table .kw-row td { background: var(--color-primary-faded); font-weight: 700; padding: 0.5rem 1rem; }
+    .month-table .date-cell { white-space: nowrap; font-weight: 500; min-width: 120px; }
+    .month-table input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.95rem; }
+    .month-table input[type="text"]:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
     .overview-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     .overview-table th, .overview-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--color-border); }
     .overview-table th { background: var(--color-primary); color: white; font-weight: 600; }
@@ -60,15 +59,19 @@
     <button class="mittag-tab" data-tab="overview">📊 Tagesübersicht</button>
   </div>
 
-  <!-- Tab: Menü bearbeiten -->
+  <!-- Tab: Menü bearbeiten (Monatsübersicht) -->
   <div id="tab-menu" class="tab-pane active">
-    <p style="margin-bottom: 1.5rem; color: var(--color-text-muted);">Wähle Mi, Do oder Fr und trage Vorspeise, Hauptspeise sowie Preise ein. Mit „Aktiv“ wird das Menü für diesen Tag freigeschaltet.</p>
-    <div class="date-picker-row">
-      <label for="menu-date">Datum:</label>
-      <input type="date" id="menu-date">
+    <p style="margin-bottom: 1.5rem; color: var(--color-text-muted);">Monat wählen und Menü eintragen. Änderungen werden beim Verlassen des Feldes (oder Enter) gespeichert.</p>
+    <div class="month-picker-row">
+      <label for="menu-month">Monat:</label>
+      <select id="menu-month"></select>
+      <label for="menu-year">Jahr:</label>
+      <select id="menu-year"></select>
       <button type="button" id="load-menu-btn">Laden</button>
     </div>
-    <div id="day-forms"></div>
+    <div id="month-menu-container">
+      <p class="text-muted">Monat wählen und Laden klicken.</p>
+    </div>
   </div>
 
   <!-- Tab: Tagesübersicht -->

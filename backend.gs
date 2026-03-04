@@ -103,6 +103,7 @@ function doGet(e) {
     case "mittag_book": return handleMittagBookViaGet(e.parameter.data);
     case "cancel": return handleCancel(e.parameter.token);
     case "mittag_admin_menu": return handleMittagAdminMenu(e.parameter);
+    case "mittag_admin_menu_month": return handleMittagAdminMenuMonth(e.parameter);
     case "mittag_admin_save_menu": return handleMittagAdminSaveMenu(e.parameter);
     case "mittag_admin_overview": return handleMittagAdminOverview(e.parameter);
     case "mittag_api_menu": return handleMittagApiMenu(e.parameter);
@@ -442,6 +443,59 @@ function handleMittagAdminMenu(params) {
     aktiv: false
   };
   return jsonResponse({ ok: true, menu: rowData });
+}
+
+function handleMittagAdminMenuMonth(params) {
+  if (!params.admin_key || params.admin_key !== getSetting("ADMIN_KEY")) {
+    return jsonResponse({ ok: false, message: "Ungültiger Admin-Schlüssel" });
+  }
+  const year = parseInt(params.year, 10);
+  const month = parseInt(params.month, 10);
+  if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+    return jsonResponse({ ok: false, message: "Jahr und Monat erforderlich (year, month)" });
+  }
+  const sheet = getSheet(SHEET_MITTAG_MENU);
+  const menusByDate = {};
+  if (sheet && sheet.getLastRow() >= 2) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowDate = String(row[0] || "").trim().split("T")[0];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(rowDate)) continue;
+      const [y, m] = rowDate.split("-").map(Number);
+      if (y === year && m === month) {
+        const aktiv = row[6] === true || row[6] === "TRUE" || row[6] === "x" || row[6] === 1;
+        menusByDate[rowDate] = {
+          date: rowDate,
+          weekday: parseInt(row[1]) || 3,
+          vorspeise: String(row[2] || "").trim(),
+          hauptspeise: String(row[3] || "").trim(),
+          preis_basis: parseInt(row[4]) || MITTAG_PREIS_BASIS,
+          preis_rabatt: parseInt(row[5]) || MITTAG_PREIS_RABATT,
+          aktiv
+        };
+      }
+    }
+  }
+  const menus = [];
+  const d = new Date(year, month - 1, 1);
+  while (d.getMonth() === month - 1) {
+    const day = d.getDay();
+    if (MITTAG_WEEKDAYS.indexOf(day) >= 0) {
+      const dateId = Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      menus.push(menusByDate[dateId] || {
+        date: dateId,
+        weekday: day,
+        vorspeise: "",
+        hauptspeise: "",
+        preis_basis: MITTAG_PREIS_BASIS,
+        preis_rabatt: MITTAG_PREIS_RABATT,
+        aktiv: false
+      });
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return jsonResponse({ ok: true, menus });
 }
 
 function handleMittagAdminSaveMenu(params) {

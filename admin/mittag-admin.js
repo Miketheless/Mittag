@@ -1,6 +1,7 @@
 /**
  * Admin Mittagsmenü – Wirtshaus Metzenhof
- * Menü bearbeiten (Mi–Fr), Tagesübersicht
+ * Monatsübersicht: Datum/Wochentag (Mi–Fr), Vorspeise, Hauptspeise
+ * Tagesübersicht: Buchungsstatistik
  */
 
 const SCRIPT_BASE = "https://script.google.com/macros/s/AKfycbytQIEJfKdPQIuH7LrNZeBNbbv3LuQ5f2MduFYopn-bu0ojxCtxPVuKf6kvkWOyawQ0Og/exec";
@@ -9,28 +10,54 @@ let adminKey = "";
 
 function $(id) { return document.getElementById(id); }
 
-function nextMittagDay() {
-  const d = new Date();
-  const day = d.getDay();
-  let add = 0;
-  if (day <= 2) add = 3 - day;      // Mon/Tue -> Wed
-  else if (day <= 4) add = 4 - day; // Wed -> Thu, Thu -> Fri
-  else if (day <= 5) add = 5 - day; // Fri -> today
-  else add = 3;                      // Sat/Sun -> Wed
-  d.setDate(d.getDate() + add);
-  return d.toISOString().slice(0, 10);
+const WOCHENTAGE = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+function getCalendarWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return weekNo;
 }
 
-function setDateInputs() {
-  const d = nextMittagDay();
-  const menuDate = $("menu-date");
-  const overviewDate = $("overview-date");
-  if (menuDate) menuDate.value = d;
-  if (overviewDate) overviewDate.value = new Date().toISOString().slice(0, 10);
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return "–";
+  const [y, m, d] = String(dateStr).trim().split("T")[0].split("-");
+  const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  const wd = WOCHENTAGE[date.getDay()] || "–";
+  return `${wd}, ${d.padStart(2, "0")}.${m.padStart(2, "0")}.${y}`;
 }
 
-async function fetchMenu(adminKey, dateId) {
-  const params = new URLSearchParams({ action: "mittag_admin_menu", admin_key: adminKey, date: dateId });
+function fillMonthYearSelects() {
+  const now = new Date();
+  const yearSel = $("menu-year");
+  const monthSel = $("menu-month");
+  if (!yearSel || !monthSel) return;
+
+  const months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  for (let y = now.getFullYear() - 1; y <= now.getFullYear() + 1; y++) {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if (y === now.getFullYear()) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+  months.forEach((name, i) => {
+    const opt = document.createElement("option");
+    opt.value = i + 1;
+    opt.textContent = name;
+    if (i === now.getMonth()) opt.selected = true;
+    monthSel.appendChild(opt);
+  });
+}
+
+async function fetchMenuMonth(adminKey, year, month) {
+  const params = new URLSearchParams({
+    action: "mittag_admin_menu_month",
+    admin_key: adminKey,
+    year: String(year),
+    month: String(month)
+  });
   const res = await fetch(SCRIPT_BASE + "?" + params);
   return res.json();
 }
@@ -42,8 +69,8 @@ async function saveMenu(adminKey, data) {
     date: data.date,
     vorspeise: data.vorspeise,
     hauptspeise: data.hauptspeise,
-    preis_basis: data.preis_basis,
-    preis_rabatt: data.preis_rabatt,
+    preis_basis: String(data.preis_basis || 15),
+    preis_rabatt: String(data.preis_rabatt || 12),
     aktiv: data.aktiv ? "true" : "false"
   });
   const res = await fetch(SCRIPT_BASE + "?" + params);
@@ -56,90 +83,122 @@ async function fetchOverview(adminKey, dateId) {
   return res.json();
 }
 
-function renderMenuForm(menu) {
-  const container = $("day-forms");
-  const wochentage = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-  const wd = wochentage[menu.weekday] || "–";
+function renderMonthTable(menus) {
+  const container = $("month-menu-container");
+  if (!menus || menus.length === 0) {
+    container.innerHTML = '<p class="text-muted">Keine Mittagstage in diesem Monat.</p>';
+    return;
+  }
 
-  container.innerHTML = `
-    <div class="day-form">
-      <h3>${wd} – ${menu.date}</h3>
-      <input type="hidden" id="form-date" value="${menu.date}">
-      <label>Vorspeise</label>
-      <input type="text" id="form-vorspeise" value="${(menu.vorspeise || "").replace(/"/g, "&quot;")}" placeholder="z.B. Suppe des Tages">
-      <label>Hauptspeise</label>
-      <input type="text" id="form-hauptspeise" value="${(menu.hauptspeise || "").replace(/"/g, "&quot;")}" placeholder="z.B. Schnitzel mit Erdäpfelsalat">
-      <label>Basispreis (€)</label>
-      <input type="number" id="form-preis-basis" value="${menu.preis_basis || 15}" min="1" step="0.01">
-      <label>Rabattpreis (€, bis 10:00)</label>
-      <input type="number" id="form-preis-rabatt" value="${menu.preis_rabatt || 12}" min="1" step="0.01">
-      <div class="aktiv-row">
-        <input type="checkbox" id="form-aktiv" ${menu.aktiv ? "checked" : ""}>
-        <label for="form-aktiv" style="margin:0;">Aktivieren (Menü anzeigen & buchbar)</label>
-      </div>
-      <button type="button" class="btn-save" id="save-menu-btn">Speichern</button>
-      <span id="save-status" style="margin-left: 1rem;"></span>
-    </div>
+  let lastKw = -1;
+  let html = `
+    <table class="month-table">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Vorspeise</th>
+          <th>Hauptspeise</th>
+        </tr>
+      </thead>
+      <tbody>
   `;
 
-  $("save-menu-btn").addEventListener("click", async () => {
-    const btn = $("save-menu-btn");
-    const status = $("save-status");
-    btn.disabled = true;
-    status.textContent = "Speichere...";
+  for (const m of menus) {
+    const date = new Date(m.date);
+    const kw = getCalendarWeek(date);
+    if (kw !== lastKw) {
+      lastKw = kw;
+      html += `<tr class="kw-row"><td colspan="3">KW ${kw}</td></tr>`;
+    }
+    const v = (m.vorspeise || "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const h = (m.hauptspeise || "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const preisBasis = m.preis_basis || 15;
+    const preisRabatt = m.preis_rabatt || 12;
+    const aktiv = m.aktiv ? "1" : "0";
+    html += `
+      <tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
+        <td class="date-cell">${formatDateDisplay(m.date)}</td>
+        <td><input type="text" class="menu-vorspeise" data-date="${m.date}" value="${v}" placeholder="z.B. Suppe des Tages"></td>
+        <td><input type="text" class="menu-hauptspeise" data-date="${m.date}" value="${h}" placeholder="z.B. Schnitzel mit Erdäpfelsalat"></td>
+      </tr>
+    `;
+  }
+
+  html += "</tbody></table>";
+  container.innerHTML = html;
+
+  const saveOnChange = async (e) => {
+    const input = e.target;
+    const date = input.dataset.date;
+    if (!date || !adminKey) return;
+    const row = input.closest("tr");
+    if (!row?.dataset?.date) return;
+    const vorspeiseEl = row.querySelector(".menu-vorspeise");
+    const hauptspeiseEl = row.querySelector(".menu-hauptspeise");
+
+    const vorspeise = vorspeiseEl?.value?.trim() || "";
+    const hauptspeise = hauptspeiseEl?.value?.trim() || "";
+    const preisBasis = parseInt(row.dataset.preisBasis, 10) || 15;
+    const preisRabatt = parseInt(row.dataset.preisRabatt, 10) || 12;
+    const aktiv = row.dataset.aktiv === "1";
+
     try {
       const result = await saveMenu(adminKey, {
-        date: $("form-date").value,
-        vorspeise: $("form-vorspeise").value,
-        hauptspeise: $("form-hauptspeise").value,
-        preis_basis: parseInt($("form-preis-basis").value) || 15,
-        preis_rabatt: parseInt($("form-preis-rabatt").value) || 12,
-        aktiv: $("form-aktiv").checked
+        date,
+        vorspeise,
+        hauptspeise,
+        preis_basis: preisBasis,
+        preis_rabatt: preisRabatt,
+        aktiv
       });
       if (result.ok) {
-        status.textContent = "✓ Gespeichert";
-        status.style.color = "var(--color-success)";
-      } else {
-        status.textContent = "Fehler: " + (result.message || "Unbekannt");
-        status.style.color = "var(--color-error)";
+        const badge = document.createElement("span");
+        badge.textContent = " ✓";
+        badge.style.color = "var(--color-success, green)";
+        badge.style.fontSize = "0.85rem";
+        input.parentElement.appendChild(badge);
+        setTimeout(() => badge.remove(), 1500);
       }
-    } catch (e) {
-      status.textContent = "Fehler: " + e.message;
-      status.style.color = "var(--color-error)";
+    } catch (err) {
+      console.warn("Speichern fehlgeschlagen:", err);
     }
-    btn.disabled = false;
+  };
+
+  container.querySelectorAll(".menu-vorspeise, .menu-hauptspeise").forEach(input => {
+    input.addEventListener("blur", saveOnChange);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        input.blur();
+      }
+    });
   });
 }
 
-async function loadMenu() {
-  const dateId = $("menu-date").value;
-  if (!dateId) return;
+async function loadMenuMonth() {
+  const year = parseInt($("menu-year").value, 10);
+  const month = parseInt($("menu-month").value, 10);
+  if (isNaN(year) || isNaN(month)) return;
+
+  const container = $("month-menu-container");
+  container.innerHTML = "<p>Wird geladen...</p>";
+
   try {
-    const res = await fetchMenu(adminKey, dateId);
-    if (res.ok && res.menu) {
-      renderMenuForm(res.menu);
+    const res = await fetchMenuMonth(adminKey, year, month);
+    if (res.ok && res.menus) {
+      renderMonthTable(res.menus);
     } else {
-      $("day-forms").innerHTML = '<p class="text-muted">Kein Eintrag für dieses Datum. Formular ausfüllen und Speichern.</p>';
-      const d = new Date(dateId);
-      renderMenuForm({
-        date: dateId,
-        weekday: d.getDay(),
-        vorspeise: "",
-        hauptspeise: "",
-        preis_basis: 15,
-        preis_rabatt: 12,
-        aktiv: false
-      });
+      container.innerHTML = '<p class="message error">' + (res.message || "Fehler beim Laden") + "</p>";
     }
   } catch (e) {
-    $("day-forms").innerHTML = '<p class="message error">Fehler beim Laden: ' + e.message + '</p>';
+    container.innerHTML = '<p class="message error">Fehler: ' + e.message + "</p>";
   }
 }
 
 function renderOverview(data) {
   const container = $("overview-content");
   if (!data.ok) {
-    container.innerHTML = '<p class="message error">' + (data.message || "Fehler") + '</p>';
+    container.innerHTML = '<p class="message error">' + (data.message || "Fehler") + "</p>";
     return;
   }
 
@@ -177,12 +236,12 @@ function renderOverview(data) {
 async function loadOverview() {
   const dateId = $("overview-date").value;
   if (!dateId) return;
-  $("overview-content").innerHTML = '<p>Wird geladen...</p>';
+  $("overview-content").innerHTML = "<p>Wird geladen...</p>";
   try {
     const res = await fetchOverview(adminKey, dateId);
     renderOverview(res);
   } catch (e) {
-    $("overview-content").innerHTML = '<p class="message error">Fehler: ' + e.message + '</p>';
+    $("overview-content").innerHTML = '<p class="message error">Fehler: ' + e.message + "</p>";
   }
 }
 
@@ -196,13 +255,15 @@ async function handleLogin() {
   $("login-btn").disabled = true;
   $("login-btn").textContent = "Prüfe...";
   try {
-    const res = await fetchMenu(key, new Date().toISOString().slice(0, 10));
+    const now = new Date();
+    const res = await fetchMenuMonth(key, now.getFullYear(), now.getMonth() + 1);
     if (res.ok !== false) {
       adminKey = key;
       $("login-section").classList.add("hidden");
       $("mittag-panel").classList.remove("hidden");
-      setDateInputs();
-      loadMenu();
+      fillMonthYearSelects();
+      $("overview-date").value = now.toISOString().slice(0, 10);
+      loadMenuMonth();
     } else {
       $("login-message").textContent = res.message || "Ungültiger Admin-Schlüssel";
       $("login-message").className = "message error";
@@ -216,21 +277,20 @@ async function handleLogin() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  setDateInputs();
-
-  $("login-btn").addEventListener("click", handleLogin);
-  $("admin-key").addEventListener("keypress", e => { if (e.key === "Enter") handleLogin(); });
+  $("login-btn")?.addEventListener("click", handleLogin);
+  $("admin-key")?.addEventListener("keypress", (e) => { if (e.key === "Enter") handleLogin(); });
+  $("load-menu-btn")?.addEventListener("click", loadMenuMonth);
 
   document.querySelectorAll(".mittag-tab").forEach(tab => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".mittag-tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".mittag-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach((p) => p.classList.remove("active"));
       tab.classList.add("active");
-      document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+      document.getElementById("tab-" + tab.dataset.tab)?.classList.add("active");
       if (tab.dataset.tab === "overview") loadOverview();
+      else if (tab.dataset.tab === "menu") loadMenuMonth();
     });
   });
 
-  $("load-menu-btn").addEventListener("click", loadMenu);
-  $("load-overview-btn").addEventListener("click", loadOverview);
+  $("load-overview-btn")?.addEventListener("click", loadOverview);
 });
