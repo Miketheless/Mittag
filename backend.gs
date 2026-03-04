@@ -136,7 +136,7 @@ function mittagSlotId(dateId, timeStr) {
 
 function getMittagMenuForDate(dateId) {
   const raw = getMittagMenuRawForDate(dateId);
-  return raw && raw.aktiv ? raw : null;
+  return raw || null;
 }
 
 function getMittagMenuRawForDate(dateId) {
