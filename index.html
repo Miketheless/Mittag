@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!-- Mittagsmenü – Wirtshaus Metzenhof – mittag.metzenhof.at -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mittagsmenü buchen – Wirtshaus Metzenhof. Vorspeise, Hauptspeise, frisch zubereitet.">
+  <title>Mittagsmenü – Wirtshaus Metzenhof</title>
+  <link rel="canonical" href="https://mittag.metzenhof.at/">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="hero hero-green">
+  <div class="hero-inner">
+    <div class="hero-logos">
+      <img src="metzenhof_logo_ohne_subline_farbe.svg" alt="Wirtshaus Metzenhof" class="hero-logo hero-logo-gemma" style="filter: brightness(0) invert(1);">
+    </div>
+    <h1 class="hero-headline">Mittagsmenü</h1>
+    <p class="hero-subheadline">Frisch zubereitet – Mi, Do & Fr</p>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card mittag-section">
+    <div id="mittag-loading" class="termine-loading">
+      <div class="loading-spinner"></div>
+      <span>Menü wird geladen...</span>
+    </div>
+
+    <div id="mittag-no-menu" class="hidden">
+      <p class="text-muted">Heute kein Mittagsmenü verfügbar. Wir haben Mi, Do und Fr geöffnet.</p>
+    </div>
+
+    <div id="mittag-content" class="hidden">
+      <div class="mittag-menu-card">
+        <h2 class="mittag-title">Menü des Tages</h2>
+        <div class="mittag-dishes">
+          <p class="mittag-dish"><strong>Vorspeise:</strong> <span id="mittag-vorspeise"></span></p>
+          <p class="mittag-dish"><strong>Hauptspeise:</strong> <span id="mittag-hauptspeise"></span></p>
+        </div>
+        <div class="mittag-price-row">
+          <span class="mittag-price" id="mittag-preis">– €</span>
+          <span id="mittag-rabatt-badge" class="mittag-rabatt-badge hidden">−20% bis 10:00 Uhr</span>
+        </div>
+      </div>
+
+      <div class="mittag-slots-section">
+        <h3>Zeitfenster wählen</h3>
+        <div id="mittag-slots" class="mittag-slots-grid"></div>
+      </div>
+
+      <div class="booking-hinweis">
+        <p class="hinweis-text"><strong>Hinweis:</strong> Mit der Buchung reservieren Sie verbindlich einen Platz für das Mittagsmenü.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-logo">
+    <a href="https://www.metzenhof.at" target="_blank" rel="noopener">
+      <img src="metzenhof_logo_ohne_subline_farbe.svg" alt="Wirtshaus Metzenhof" class="logo-white">
+    </a>
+  </div>
+  <div class="footer-inner">
+    <div class="footer-section">
+      <h5>Kontakt</h5>
+      <p>Wirtshaus Metzenhof</p>
+      <p><a href="mailto:info@metzenhof.at">info@metzenhof.at</a></p>
+    </div>
+    <div class="footer-section">
+      <h5>Informationen</h5>
+      <a href="https://www.metzenhof.at" target="_blank">Metzenhof</a>
+      <a href="agb.html">AGB</a>
+      <a href="privacy.html">Datenschutz</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Wirtshaus Metzenhof</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    initMittag();
+  });
+</script>
+</body>
+</html>

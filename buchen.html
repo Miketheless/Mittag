@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<!-- Mittagsmenü buchen – Wirtshaus Metzenhof – mittag.metzenhof.at -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mittagsmenü buchen – Wirtshaus Metzenhof.">
+  <title>Mittagsmenü buchen – Wirtshaus Metzenhof</title>
+  <link rel="canonical" href="https://mittag.metzenhof.at/">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero hero-green hero-compact">
+  <div class="hero-inner">
+    <div class="hero-logos">
+      <a href="index.html" class="back-link">← Zurück zur Menü-Auswahl</a>
+      <img src="metzenhof_logo_ohne_subline_farbe.svg" alt="Wirtshaus Metzenhof" class="hero-logo hero-logo-gemma-small" style="filter: brightness(0) invert(1);">
+    </div>
+    
+    <h1 class="hero-title-booking">Mittagsmenü buchen</h1>
+    
+    <div id="selected-date-display" class="selected-date-badge">
+      <span class="selected-date-label">Dein Termin:</span>
+      <span class="selected-date-value" id="selected-date-text">–</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  
+  <section class="card booking-form-section">
+    <div class="card-header">
+      <h2>Deine Daten</h2>
+      <p class="form-subtitle">Bitte fülle alle Pflichtfelder (*) aus.</p>
+    </div>
+    
+    <form id="booking-form">
+      <input type="hidden" id="slot_id" name="slot_id" value="">
+      <input type="hidden" id="workshop_id" name="workshop_id" value="">
+      <input type="hidden" id="participants_count" name="participants_count" value="1">
+      <div class="selected-slot-info" id="slot-info-card">
+        <div class="slot-info-icon">📅</div>
+        <div class="slot-info-header">Gewählter Termin</div>
+        <div class="slot-info-date" id="slot-info-date">–</div>
+        <div class="slot-info-time" id="slot-info-time">
+          <span class="time-label">Zeit:</span>
+          <span class="time-value" id="slot-time-value">–</span>
+        </div>
+        <div class="slot-info-free" id="slot-info-free">–</div>
+        <div class="slot-info-workshop" id="slot-info-workshop">–</div>
+        <a href="index.html" class="slot-change-link">← Anderen Termin wählen</a>
+      </div>
+      
+      <!-- Kontakt-E-Mail -->
+      <div class="participants-data-section">
+        <div class="section-header">
+          <span class="section-icon">👤</span>
+          <h3>Deine Angaben</h3>
+        </div>
+        <div id="participants"></div>
+        <div class="form-row" style="margin-top: 1rem;">
+          <label>Gutscheinnummer (optional) <input type="text" name="voucher_code" id="voucher_code" placeholder="z.B. GUTSCHEIN-2026-ABC" autocomplete="off" maxlength="50"></label>
+        </div>
+      </div>
+      
+      <div class="order-summary">
+        <h3>📋 Bestellübersicht</h3>
+        <div class="order-summary-row">
+          <span class="order-label">Workshop:</span>
+          <span class="order-value" id="summary-workshop">–</span>
+        </div>
+        <div class="order-summary-row">
+          <span class="order-label">Termin:</span>
+          <span class="order-value" id="summary-date">–</span>
+        </div>
+        <div class="order-price">
+          <div class="price-total">
+            <span>Gesamtpreis:</span>
+            <strong id="summary-total">–</strong>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AGB/Datenschutz Checkbox -->
+      <div class="legal-checkboxes">
+        <h4>Rechtliche Zustimmungen</h4>
+        <label class="checkbox-item">
+          <input type="checkbox" class="checkbox-square" name="agb_accepted" id="agb_accepted" required>
+          <span>Ich akzeptiere die <a href="https://www.gemma-golfn.at/agb/" target="_blank" rel="noopener">AGB</a>. *</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" class="checkbox-square" name="privacy_accepted" id="privacy_accepted" required>
+          <span>Ich habe die <a href="privacy.html" target="_blank">Datenschutzerklärung</a> zur Kenntnis genommen. *</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" class="checkbox-square" name="fagg_consent" id="fagg_consent" required>
+          <span>Ich stimme zu, dass die Leistung zu einem fixen Termin erbracht wird (kein Rücktrittsrecht gemäß § 18 FAGG). *</span>
+        </label>
+        <p class="checkbox-hint">* Pflichtfeld</p>
+      </div>
+      
+      <div id="checkbox-error" class="checkbox-error" style="display:none;"></div>
+      <button type="submit" class="btn-submit">Jetzt buchen</button>
+      <div id="message" class="message" style="display:none;"></div>
+    </form>
+  </section>
+  
+  <section id="success-section" class="card success-card" style="display:none;">
+    <div class="success-icon">✓</div>
+    <h2>Buchung erfolgreich!</h2>
+    
+    <div class="booking-details">
+      <div class="detail-row">
+        <span class="detail-label">Buchungs-ID</span>
+        <span class="detail-value" id="success-id">–</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Termin</span>
+        <span class="detail-value" id="success-date">–</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Bestätigung an</span>
+        <span class="detail-value" id="success-email">–</span>
+      </div>
+    </div>
+    
+    <div class="success-info">
+      <p id="email-status-text">Sie erhalten eine Bestätigung per E-Mail.</p>
+      <p>Rechnung wird via E-Mail gesendet.</p>
+    </div>
+    
+    <div id="next-steps" class="next-steps">
+      <h3>Nächste Schritte</h3>
+      <ul>
+        <li>✓ Dein Termin ist fix reserviert</li>
+        <li>✓ Bitte erscheine pünktlich zum Workshop</li>
+        <li>✓ Du bekommst eine E-Mail mit einer Rechnung zum Bezahlen des Workshops</li>
+      </ul>
+    </div>
+    
+    <div class="success-contact">
+      <p>Bei Fragen: <strong>office@gemma-golfn.at</strong> · <strong>+43 7225 7389 10</strong></p>
+    </div>
+    
+    <div class="success-buttons">
+      <a href="index.html" class="btn-primary">Zurück zur Übersicht</a>
+      <button type="button" id="new-booking" class="btn-secondary">Weitere Buchung</button>
+    </div>
+  </section>
+  
+  <section id="no-slot-section" class="card error-card" style="display:none;">
+    <div class="error-icon">!</div>
+    <h2>Kein Zeitslot gewählt</h2>
+    <p id="no-slot-message">Bitte wähle zuerst einen Zeitslot auf der Startseite.</p>
+    <a href="index.html" class="btn-primary">Zur Menü-Auswahl</a>
+  </section>
+  
+</main>
+
+<footer class="footer">
+  <div class="footer-logo">
+    <a href="https://www.metzenhof.at" target="_blank" rel="noopener">
+      <img src="metzenhof_logo_ohne_subline_farbe.svg" alt="Golfclub Metzenhof" class="logo-white">
+    </a>
+  </div>
+  <div class="footer-inner">
+    <div class="footer-section">
+      <h5>Kontakt</h5>
+      <p>Wirtshaus Metzenhof</p>
+      <p><a href="mailto:info@metzenhof.at">info@metzenhof.at</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Wirtshaus Metzenhof</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
