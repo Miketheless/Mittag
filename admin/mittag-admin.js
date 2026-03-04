@@ -83,8 +83,51 @@ async function fetchOverview(adminKey, dateId) {
   return res.json();
 }
 
+let currentMenusData = [];
+
+function escapeHtml(s) {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderRowView(m) {
+  const preisBasis = m.preis_basis || 15;
+  const preisRabatt = m.preis_rabatt || 12;
+  const aktiv = m.aktiv ? "1" : "0";
+  const vText = m.vorspeise ? escapeHtml(m.vorspeise) : '<span class="text-muted">–</span>';
+  const hText = m.hauptspeise ? escapeHtml(m.hauptspeise) : '<span class="text-muted">–</span>';
+  return `<tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
+    <td class="date-cell">${formatDateDisplay(m.date)}</td>
+    <td class="view-vorspeise">${vText}</td>
+    <td class="view-hauptspeise">${hText}</td>
+    <td class="action-cell"><button type="button" class="btn-edit" data-date="${m.date}">Ändern</button></td>
+  </tr>`;
+}
+
+function renderRowEdit(m) {
+  const v = escapeHtml(m.vorspeise || "");
+  const h = escapeHtml(m.hauptspeise || "");
+  const preisBasis = m.preis_basis || 15;
+  const preisRabatt = m.preis_rabatt || 12;
+  const aktiv = m.aktiv ? "1" : "0";
+  return `<tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
+    <td class="date-cell">${formatDateDisplay(m.date)}</td>
+    <td><input type="text" class="edit-vorspeise" value="${v}" placeholder="z.B. Suppe des Tages"></td>
+    <td><input type="text" class="edit-hauptspeise" value="${h}" placeholder="z.B. Schnitzel mit Erdäpfelsalat"></td>
+    <td class="action-cell">
+      <button type="button" class="btn-save-row">Speichern</button>
+      <button type="button" class="btn-cancel">Abbrechen</button>
+    </td>
+  </tr>`;
+}
+
 function renderMonthTable(menus) {
   const container = $("month-menu-container");
+  currentMenusData = menus;
   if (!menus || menus.length === 0) {
     container.innerHTML = '<p class="text-muted">Keine Mittagstage in diesem Monat.</p>';
     return;
@@ -98,6 +141,7 @@ function renderMonthTable(menus) {
           <th>Datum</th>
           <th>Vorspeise</th>
           <th>Hauptspeise</th>
+          <th>Aktion</th>
         </tr>
       </thead>
       <tbody>
@@ -108,71 +152,89 @@ function renderMonthTable(menus) {
     const kw = getCalendarWeek(date);
     if (kw !== lastKw) {
       lastKw = kw;
-      html += `<tr class="kw-row"><td colspan="3">KW ${kw}</td></tr>`;
+      html += `<tr class="kw-row"><td colspan="4">KW ${kw}</td></tr>`;
     }
-    const v = (m.vorspeise || "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const h = (m.hauptspeise || "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const preisBasis = m.preis_basis || 15;
-    const preisRabatt = m.preis_rabatt || 12;
-    const aktiv = m.aktiv ? "1" : "0";
-    html += `
-      <tr data-date="${m.date}" data-preis-basis="${preisBasis}" data-preis-rabatt="${preisRabatt}" data-aktiv="${aktiv}">
-        <td class="date-cell">${formatDateDisplay(m.date)}</td>
-        <td><input type="text" class="menu-vorspeise" data-date="${m.date}" value="${v}" placeholder="z.B. Suppe des Tages"></td>
-        <td><input type="text" class="menu-hauptspeise" data-date="${m.date}" value="${h}" placeholder="z.B. Schnitzel mit Erdäpfelsalat"></td>
-      </tr>
-    `;
+    html += renderRowView(m);
   }
 
   html += "</tbody></table>";
   container.innerHTML = html;
+}
 
-  const saveOnChange = async (e) => {
-    const input = e.target;
-    const date = input.dataset.date;
-    if (!date || !adminKey) return;
-    const row = input.closest("tr");
-    if (!row?.dataset?.date) return;
-    const vorspeiseEl = row.querySelector(".menu-vorspeise");
-    const hauptspeiseEl = row.querySelector(".menu-hauptspeise");
+function initMonthTableClickHandlers() {
+  const container = $("month-menu-container");
+  if (!container) return;
+  container.addEventListener("click", async (e) => {
+    const btnEdit = e.target.closest(".btn-edit");
+    const btnSave = e.target.closest(".btn-save-row");
+    const btnCancel = e.target.closest(".btn-cancel");
+    const date = e.target.closest("tr[data-date]")?.dataset?.date;
+    if (!date || (!btnEdit && !btnSave && !btnCancel)) return;
 
-    const vorspeise = vorspeiseEl?.value?.trim() || "";
-    const hauptspeise = hauptspeiseEl?.value?.trim() || "";
-    const preisBasis = parseInt(row.dataset.preisBasis, 10) || 15;
-    const preisRabatt = parseInt(row.dataset.preisRabatt, 10) || 12;
-    const aktiv = row.dataset.aktiv === "1";
-
-    try {
-      const result = await saveMenu(adminKey, {
-        date,
-        vorspeise,
-        hauptspeise,
-        preis_basis: preisBasis,
-        preis_rabatt: preisRabatt,
-        aktiv
-      });
-      if (result.ok) {
-        const badge = document.createElement("span");
-        badge.textContent = " ✓";
-        badge.style.color = "var(--color-success, green)";
-        badge.style.fontSize = "0.85rem";
-        input.parentElement.appendChild(badge);
-        setTimeout(() => badge.remove(), 1500);
-      }
-    } catch (err) {
-      console.warn("Speichern fehlgeschlagen:", err);
+    if (btnEdit) {
+      const menu = currentMenusData.find((m) => m.date === date);
+      if (!menu) return;
+      const row = btnEdit.closest("tr");
+      const temp = document.createElement("tbody");
+      temp.innerHTML = renderRowEdit(menu);
+      const newRow = temp.querySelector("tr");
+      row.replaceWith(newRow);
+      newRow.querySelector(".edit-vorspeise")?.focus();
     }
-  };
 
-  container.querySelectorAll(".menu-vorspeise, .menu-hauptspeise").forEach(input => {
-    input.addEventListener("blur", saveOnChange);
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
+    if (btnCancel) {
+      const menu = currentMenusData.find((m) => m.date === date);
+      if (!menu) return;
+      const row = btnCancel.closest("tr");
+      const temp = document.createElement("tbody");
+      temp.innerHTML = renderRowView(menu);
+      const newRow = temp.querySelector("tr");
+      row.replaceWith(newRow);
+    }
+
+    if (btnSave) {
+      const row = btnSave.closest("tr");
+      const menu = currentMenusData.find((m) => m.date === date);
+      if (!menu) return;
+      const vInput = row.querySelector(".edit-vorspeise");
+      const hInput = row.querySelector(".edit-hauptspeise");
+      const vorspeise = vInput?.value?.trim() || "";
+      const hauptspeise = hInput?.value?.trim() || "";
+      btnSave.disabled = true;
+      btnSave.textContent = "…";
+      try {
+        const result = await saveMenu(adminKey, {
+          date,
+          vorspeise,
+          hauptspeise,
+          preis_basis: parseInt(row.dataset.preisBasis, 10) || 15,
+          preis_rabatt: parseInt(row.dataset.preisRabatt, 10) || 12,
+          aktiv: row.dataset.aktiv === "1"
+        });
+        if (result.ok) {
+          const updated = { ...menu, vorspeise, hauptspeise };
+          const idx = currentMenusData.findIndex((m) => m.date === date);
+          if (idx >= 0) currentMenusData[idx] = updated;
+          const temp = document.createElement("tbody");
+          temp.innerHTML = renderRowView(updated);
+          row.replaceWith(temp.querySelector("tr"));
+        } else {
+          alert("Speichern fehlgeschlagen: " + (result.message || "Unbekannt"));
+        }
+      } catch (err) {
+        alert("Fehler: " + err.message);
       }
-    });
+      btnSave.disabled = false;
+      btnSave.textContent = "Speichern";
+    }
   });
+}
+
+function ensureMonthTableHandlers() {
+  const container = $("month-menu-container");
+  if (!container || container.dataset.handlersBound) return;
+  container.dataset.handlersBound = "1";
+  initMonthTableClickHandlers();
 }
 
 async function loadMenuMonth() {
@@ -277,6 +339,7 @@ async function handleLogin() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  ensureMonthTableHandlers();
   $("login-btn")?.addEventListener("click", handleLogin);
   $("admin-key")?.addEventListener("keypress", (e) => { if (e.key === "Enter") handleLogin(); });
   $("load-menu-btn")?.addEventListener("click", loadMenuMonth);

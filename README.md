@@ -84,7 +84,6 @@ Alles, was du tun musst, um die Plattform in Betrieb zu nehmen.
 1. Projekt im Editor (Cursor/VS Code) öffnen
 2. In diesen Dateien die **Web-App-URL** (aus Schritt 5) bei `SCRIPT_BASE` eintragen:
    - **app.js**
-   - **admin.js**
    - **admin/mittag-admin.js**
    - **cancel.html** (im `<script>`-Block)
 3. Alle Dateien speichern
@@ -151,7 +150,7 @@ Alles, was du tun musst, um die Plattform in Betrieb zu nehmen.
 
 ## Schritt 9: Erste Menüs anlegen
 
-1. Öffne **https://mittag.metzenhof.at/admin/mittag.html**
+1. Öffne **https://mittag.metzenhof.at/admin/**
 2. Mit **ADMIN_KEY** (aus Schritt 4) anmelden
 3. Tab **Menü bearbeiten**
 4. Datum wählen (z.B. nächsten Mittwoch)
@@ -168,7 +167,7 @@ Alles, was du tun musst, um die Plattform in Betrieb zu nehmen.
 1. **Startseite:** https://mittag.metzenhof.at  
    - An einem Mi/Do/Fr mit aktivem Menü solltest du das Menü und die Slots sehen
 2. **Buchung:** Slot wählen → Formular ausfüllen → buchen
-3. **Admin Übersicht:** https://mittag.metzenhof.at/admin/mittag.html  
+3. **Admin Übersicht:** https://mittag.metzenhof.at/admin/  
    - Tab „Tagesübersicht“ → Datum wählen → Buchungen pro Slot prüfen
 
 ---
@@ -179,8 +178,7 @@ Alles, was du tun musst, um die Plattform in Betrieb zu nehmen.
 |-------|-----|
 | Startseite | https://mittag.metzenhof.at |
 | Buchung | https://mittag.metzenhof.at/buchen.html |
-| Admin Mittag | https://mittag.metzenhof.at/admin/mittag.html |
-| Allgemeiner Admin | https://mittag.metzenhof.at/admin.html |
+| Admin | https://mittag.metzenhof.at/admin/ |
 
 ---
 
