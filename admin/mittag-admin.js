@@ -51,6 +51,16 @@ function fillMonthYearSelects() {
   });
 }
 
+async function fetchJson(url) {
+  const res = await fetch(url, { method: "GET", redirect: "follow" });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    throw new Error("Backend antwortet nicht mit JSON. Prüfe SCRIPT_BASE und ob die Web-App neu bereitgestellt wurde.");
+  }
+}
+
 async function fetchMenuMonth(adminKey, year, month) {
   const params = new URLSearchParams({
     action: "mittag_admin_menu_month",
@@ -58,8 +68,7 @@ async function fetchMenuMonth(adminKey, year, month) {
     year: String(year),
     month: String(month)
   });
-  const res = await fetch(SCRIPT_BASE + "?" + params);
-  return res.json();
+  return fetchJson(SCRIPT_BASE + "?" + params.toString());
 }
 
 async function saveMenu(adminKey, data) {
@@ -73,14 +82,12 @@ async function saveMenu(adminKey, data) {
     preis_rabatt: String(data.preis_rabatt || 12),
     aktiv: data.aktiv ? "true" : "false"
   });
-  const res = await fetch(SCRIPT_BASE + "?" + params);
-  return res.json();
+  return fetchJson(SCRIPT_BASE + "?" + params.toString());
 }
 
 async function fetchOverview(adminKey, dateId) {
   const params = new URLSearchParams({ action: "mittag_admin_overview", admin_key: adminKey, date: dateId });
-  const res = await fetch(SCRIPT_BASE + "?" + params);
-  return res.json();
+  return fetchJson(SCRIPT_BASE + "?" + params.toString());
 }
 
 let currentMenusData = [];
@@ -227,7 +234,7 @@ function initMonthTableClickHandlers() {
           temp.innerHTML = renderRowView(updated);
           row.replaceWith(temp.querySelector("tr"));
         } else {
-          alert("Speichern fehlgeschlagen: " + (result.message || "Unbekannt"));
+          alert("Speichern fehlgeschlagen: " + (result.message || "Unbekannt") + "\n\nPrüfe: Admin-Schlüssel stimmt mit Settings-ADMIN_KEY überein? Backend neu bereitgestellt?");
         }
       } catch (err) {
         alert("Fehler: " + err.message);
@@ -255,13 +262,14 @@ async function loadMenuMonth() {
 
   try {
     const res = await fetchMenuMonth(adminKey, year, month);
-    if (res.ok && res.menus) {
+    if (res.ok && Array.isArray(res.menus)) {
       renderMonthTable(res.menus);
     } else {
-      container.innerHTML = '<p class="message error">' + (res.message || "Fehler beim Laden") + "</p>";
+      const msg = res.message || "Fehler beim Laden";
+      container.innerHTML = '<p class="message error">' + escapeHtml(msg) + "</p><p style='font-size:0.85rem; color:#666; margin-top:0.5rem;'>Hinweis: Ist die backend.gs im Google Apps Script aktuell und neu bereitgestellt?</p>";
     }
   } catch (e) {
-    container.innerHTML = '<p class="message error">Fehler: ' + e.message + "</p>";
+    container.innerHTML = '<p class="message error">Fehler: ' + escapeHtml(e.message) + "</p><p style='font-size:0.85rem; color:#666; margin-top:0.5rem;'>Prüfe die Browser-Konsole (F12) und ob SCRIPT_BASE korrekt ist.</p>";
   }
 }
 

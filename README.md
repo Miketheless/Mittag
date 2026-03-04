@@ -188,7 +188,8 @@ Alles, was du tun musst, um die Plattform in Betrieb zu nehmen.
 |---------|--------|
 | „Ungültiger Admin-Schlüssel“ | ADMIN_KEY in Settings prüfen, exakt so eingeben |
 | „Menü wird geladen…“ bleibt | SCRIPT_BASE in app.js prüfen, Web-App als „Jeder“ bereitgestellt? |
-| Kein Menü sichtbar | Ist heute Mi/Do/Fr? Im Admin ein Menü angelegt und aktiviert? |
+| Kein Menü sichtbar | Ist heute Mi/Do/Fr? Im Admin ein Menü angelegt und **Aktiv** gesetzt? |
+| Menüs speichern/laden nicht | **Backend neu bereitstellen:** script.google.com → Bereitstellen → Neue Version → Bereitstellen. Nach Änderung an backend.gs immer neu bereitstellen! |
 | CORS-Fehler | Web-App muss mit Zugriff **„Jeder“** bereitgestellt sein |
 | Domain funktioniert nicht | DNS 10–60 Min. warten, CNAME korrekt eingetragen? |
 

@@ -484,11 +484,17 @@ function showSuccess(bookingId, slotId, email) {
 
 async function fetchMittagSlotsToday() {
   try {
-    const res = await fetch(CONFIG.SCRIPT_BASE + "?action=mittag_slots_today");
-    return res.json();
+    const res = await fetch(CONFIG.SCRIPT_BASE + "?action=mittag_slots_today", { method: "GET", redirect: "follow" });
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      console.warn("Mittag API: Keine gültige JSON-Antwort");
+      return { ok: false, message: "Backend-Antwort ungültig" };
+    }
   } catch (e) {
     console.warn("Mittag API:", e.message);
-    return { ok: false };
+    return { ok: false, message: e.message };
   }
 }
 
@@ -652,6 +658,8 @@ async function initMittag() {
 
   if (!data.ok || !data.menu) {
     noMenu.classList.remove("hidden");
+    const p = noMenu.querySelector("p");
+    if (p) p.textContent = (data.message || "Heute kein Mittagsmenü verfügbar.") + " Heute Mi/Do/Fr? Menü im Admin aktiviert?";
     return;
   }
 
