@@ -99,7 +99,7 @@ function doGet(e) {
   
   switch (action) {
     case "mittag_menu_today": return handleMittagMenuToday();
-    case "mittag_slots_today": return handleMittagSlotsToday();
+    case "mittag_slots_today": return handleMittagSlotsToday(e.parameter);
     case "mittag_book": return handleMittagBookViaGet(e.parameter.data);
     case "cancel": return handleCancel(e.parameter.token);
     case "mittag_admin_menu": return handleMittagAdminMenu(e.parameter);
@@ -139,18 +139,31 @@ function getMittagMenuForDate(dateId) {
   return raw || null;
 }
 
+function normalizeDateToYMD(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+  const s = String(val).trim();
+  const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[0];
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  return s.split("T")[0] || s;
+}
+
 function getMittagMenuRawForDate(dateId) {
   const sheet = getSheet(SHEET_MITTAG_MENU);
   if (!sheet || sheet.getLastRow() < 2) return null;
   const data = sheet.getDataRange().getValues();
-  const d = String(dateId).trim().split("T")[0];
+  const targetDate = normalizeDateToYMD(dateId) || String(dateId).trim().split("T")[0];
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    const rowDate = String(row[0] || "").trim();
-    if (rowDate.split("T")[0] === d) {
+    const rowDateNorm = normalizeDateToYMD(row[0]);
+    if (rowDateNorm && rowDateNorm === targetDate) {
       const aktiv = row[6] === true || row[6] === "TRUE" || row[6] === "x" || row[6] === 1;
       return {
-        date: rowDate.split("T")[0],
+        date: rowDateNorm,
         weekday: parseInt(row[1]) || 3,
         vorspeise: String(row[2] || "").trim(),
         hauptspeise: String(row[3] || "").trim(),
@@ -209,15 +222,19 @@ function handleMittagMenuToday() {
   });
 }
 
-function handleMittagSlotsToday() {
-  const now = new Date();
-  const dateId = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  if (!isMittagDay(now)) {
-    return jsonResponse({ ok: true, date: dateId, slots: [], message: "Heute kein Mittagsmenü" });
+function handleMittagSlotsToday(params) {
+  let dateId = (params && params.date) ? String(params.date).trim().split("T")[0] : null;
+  if (!dateId || !/^\d{4}-\d{2}-\d{2}$/.test(dateId)) {
+    const now = new Date();
+    dateId = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+  const dateObj = new Date(dateId);
+  if (!isMittagDay(dateObj)) {
+    return jsonResponse({ ok: true, date: dateId, slots: [], message: "An diesem Tag kein Mittagsmenü (Mi/Do/Fr)" });
   }
   const menu = getMittagMenuForDate(dateId);
   if (!menu) {
-    return jsonResponse({ ok: true, date: dateId, slots: [], message: "Kein aktives Menü" });
+    return jsonResponse({ ok: true, date: dateId, slots: [], message: "Kein Menü für dieses Datum im Admin angelegt" });
   }
   const counts = getMittagBookingsCountBySlot(dateId);
   const slots = MITTAG_SLOTS.map(t => {
@@ -232,7 +249,7 @@ function handleMittagSlotsToday() {
       available: free > 0
     };
   });
-  const rabatt = isRabattGueltig(now);
+  const rabatt = isRabattGueltig(new Date());
   const preis = rabatt ? menu.preis_rabatt : menu.preis_basis;
   return jsonResponse({
     ok: true,
@@ -460,8 +477,8 @@ function handleMittagAdminMenuMonth(params) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const rowDate = String(row[0] || "").trim().split("T")[0];
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(rowDate)) continue;
+      const rowDate = normalizeDateToYMD(row[0]);
+      if (!rowDate || !/^\d{4}-\d{2}-\d{2}$/.test(rowDate)) continue;
       const [y, m] = rowDate.split("-").map(Number);
       if (y === year && m === month) {
         const aktiv = row[6] === true || row[6] === "TRUE" || row[6] === "x" || row[6] === 1;
@@ -518,11 +535,12 @@ function handleMittagAdminSaveMenu(params) {
   const d = new Date(dateId);
   const weekday = d.getDay();
 
+  const targetDateNorm = (dateId || "").toString().trim().split("T")[0];
   let existingRow = -1;
-  if (sheet.getLastRow() >= 2) {
+  if (sheet.getLastRow() >= 2 && targetDateNorm) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]).split("T")[0] === dateId) {
+      if (normalizeDateToYMD(data[i][0]) === targetDateNorm) {
         existingRow = i + 1;
         break;
       }

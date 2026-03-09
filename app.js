@@ -482,9 +482,15 @@ function showSuccess(bookingId, slotId, email) {
 // MITTAG – STARTSEITE
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function fetchMittagSlotsToday() {
+function getTodayLocalYYYYMMDD() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+async function fetchMittagSlotsToday(dateStr) {
+  const date = dateStr || getTodayLocalYYYYMMDD();
   try {
-    const res = await fetch(CONFIG.SCRIPT_BASE + "?action=mittag_slots_today", { method: "GET", redirect: "follow" });
+    const res = await fetch(CONFIG.SCRIPT_BASE + "?action=mittag_slots_today&date=" + encodeURIComponent(date), { method: "GET", redirect: "follow" });
     const text = await res.text();
     try {
       return JSON.parse(text);
@@ -659,7 +665,7 @@ async function initMittag() {
   if (!data.ok || !data.menu) {
     noMenu.classList.remove("hidden");
     const p = noMenu.querySelector("p");
-    if (p) p.textContent = (data.message || "Heute kein Mittagsmenü verfügbar.") + " Heute Mi/Do/Fr? Menü im Admin aktiviert?";
+    if (p) p.textContent = (data.message || "Kein Mittagsmenü verfügbar.") + " Heute Mi/Do/Fr? Menü im Admin für dieses Datum angelegt?";
     return;
   }
 
