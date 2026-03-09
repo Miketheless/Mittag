@@ -262,7 +262,14 @@ function handleMittagSlotsToday(params) {
   return jsonResponse({
     ok: true,
     date: dateId,
-    menu: { vorspeise: menu.vorspeise, hauptspeise: menu.hauptspeise, preis, rabatt_aktiv: rabatt },
+    menu: {
+      vorspeise: menu.vorspeise,
+      hauptspeise: menu.hauptspeise,
+      preis,
+      preis_basis: menu.preis_basis || MITTAG_PREIS_BASIS,
+      preis_rabatt: menu.preis_rabatt || MITTAG_PREIS_RABATT,
+      rabatt_aktiv: rabatt
+    },
     slots
   });
 }

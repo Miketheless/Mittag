@@ -684,14 +684,23 @@ async function initMittag() {
   content.classList.remove("hidden");
   document.getElementById("mittag-vorspeise").textContent = data.menu.vorspeise || "–";
   document.getElementById("mittag-hauptspeise").textContent = data.menu.hauptspeise || "–";
-  document.getElementById("mittag-preis").textContent = (data.menu.preis || 15) + " €";
 
-  const badge = document.getElementById("mittag-rabatt-badge");
-  if (data.menu.rabatt_aktiv) {
-    badge.classList.remove("hidden");
+  const priceWrapper = document.getElementById("mittag-price-wrapper");
+  const menu = data.menu;
+  const preisBasis = menu.preis_basis ?? 15;
+  const preisRabatt = menu.preis_rabatt ?? 12;
+  const rabattAktiv = menu.rabatt_aktiv;
+
+  if (rabattAktiv) {
+    priceWrapper.innerHTML = `<span class="mittag-price">${preisRabatt} €</span>`;
+    document.getElementById("mittag-rabatt-badge").classList.remove("hidden");
   } else {
-    badge.classList.add("hidden");
+    priceWrapper.innerHTML = `<span class="mittag-price mittag-price-struck">${preisRabatt} €</span> <span class="mittag-price">${preisBasis} €</span>`;
+    document.getElementById("mittag-rabatt-badge").classList.add("hidden");
   }
+
+  const hinweis = document.querySelector(".mittag-rabatt-hinweis");
+  if (hinweis) hinweis.style.display = "block";
 
   const slotsContainer = document.getElementById("mittag-slots");
   const slots = data.slots || [];

@@ -3339,11 +3339,26 @@ a:focus-visible {
   gap: 1rem;
   flex-wrap: wrap;
 }
+.mittag-price-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .mittag-price {
   font-family: var(--font-headline);
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-primary);
+}
+.mittag-price-struck {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+}
+.mittag-rabatt-hinweis {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 .mittag-rabatt-badge {
   display: inline-block;
