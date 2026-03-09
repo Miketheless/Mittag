@@ -500,9 +500,9 @@ function updateHeroPrice() {
   if (!el) return;
   const rabatt = isRabattAktivLocal();
   if (rabatt) {
-    el.innerHTML = '<span class="hero-price-value">12 €</span> <span class="hero-price-note">bei Reservierung vor 10:00 Uhr</span>';
+    el.innerHTML = '<span class="hero-price-value">12 €</span> <span class="hero-price-note">bei Reservierung vor 10:00 Uhr</span><span class="hero-price-info">Frühbucher-Rabatt – hilft uns bei der Planung der Küche.</span>';
   } else {
-    el.innerHTML = '<span class="hero-price-struck">12 €</span> <span class="hero-price-value">15 €</span>';
+    el.innerHTML = '<span class="hero-price-struck">12 €</span> <span class="hero-price-value">15 €</span><span class="hero-price-info">Ab 10:00 Uhr gilt der reguläre Preis – spontane Gäste willkommen.</span>';
   }
 }
 
@@ -746,7 +746,11 @@ function renderMittagUpcoming() {
 
   fetchMittagMenusUpcoming(4).then(menus => {
     const today = getTodayLocalYYYYMMDD();
-    const future = menus.filter(m => m.date > today);
+    const future = menus.filter(m => {
+      if (m.date <= today) return false;
+      const menu = m.menu;
+      return menu && (menu.vorspeise || menu.hauptspeise);
+    });
     if (future.length === 0) {
       list.innerHTML = '<p class="mittag-upcoming-empty">Keine kommenden Menüs geladen. Backend neu bereitstellen?</p>';
       return;
@@ -755,23 +759,17 @@ function renderMittagUpcoming() {
     const slotTimes = ["11:30", "12:00", "12:30", "13:00"];
     list.innerHTML = future.map(m => {
       const menu = m.menu;
-      const hasMenu = menu && (menu.vorspeise || menu.hauptspeise);
       const dateStr = formatDateLong(m.date);
-      const content = hasMenu
-        ? `<p class="mittag-upcoming-dish"><strong>Vorspeise:</strong> ${menu.vorspeise || "–"}</p>
-           <p class="mittag-upcoming-dish"><strong>Hauptspeise:</strong> ${menu.hauptspeise || "–"}</p>
-           <p class="mittag-upcoming-price">${menu.preis_basis || 15} €</p>`
-        : '<p class="mittag-upcoming-placeholder">Noch nicht geplant</p>';
-      const slotLinks = hasMenu ? slotTimes.map(t => {
+      const content = `<span class="mittag-upcoming-dish">${menu.vorspeise || "–"}</span> · <span class="mittag-upcoming-dish">${menu.hauptspeise || "–"}</span> · <span class="mittag-upcoming-price">${menu.preis_basis || 15} €</span>`;
+      const slotLinks = slotTimes.map(t => {
         const href = "buchen.html?slot_time=" + encodeURIComponent(t) + "&date=" + encodeURIComponent(m.date);
-        return `<a href="${href}" class="mittag-upcoming-slot-link">${t} Uhr</a>`;
-      }).join(" ") : "";
-      const slotsHtml = slotLinks ? `<div class="mittag-upcoming-slots">Zeitslot wählen: ${slotLinks}</div>` : "";
+        return `<a href="${href}" class="mittag-upcoming-slot-link">${t}</a>`;
+      }).join(" ");
+      const slotsHtml = `<div class="mittag-upcoming-slots">${slotLinks}</div>`;
       return `
         <div class="mittag-upcoming-card">
           <div class="mittag-upcoming-date">${dateStr}</div>
-          <div class="mittag-upcoming-dishes">${content}</div>
-          ${slotsHtml}
+          <div class="mittag-upcoming-content">${content} ${slotsHtml}</div>
         </div>
       `;
     }).join("");
