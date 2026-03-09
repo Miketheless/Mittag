@@ -3377,6 +3377,7 @@ a:focus-visible {
   gap: 1rem;
 }
 .mittag-slot {
+  display: block;
   padding: 1rem 1.25rem;
   background: var(--color-bg-card);
   border: 2px solid var(--color-primary);
@@ -3385,8 +3386,10 @@ a:focus-visible {
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.2s;
+  text-decoration: none;
+  color: inherit;
 }
-.mittag-slot:hover:not(.full) {
+a.mittag-slot:hover {
   background: var(--color-primary);
   color: white;
   transform: translateY(-2px);

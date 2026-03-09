@@ -712,10 +712,11 @@ async function initMittag() {
     const label = available
       ? s.time + " Uhr (" + s.free + " frei)"
       : s.time + " – Ausgebucht";
-    const attr = available
-      ? `onclick="selectMittagSlot('${s.time}','${date}')" style="cursor:pointer;"`
-      : 'style="cursor:not-allowed; opacity:0.7;"';
-    return `<div class="${cls}" ${attr}>${label}</div>`;
+    if (available) {
+      const href = "buchen.html?slot_time=" + encodeURIComponent(s.time) + "&date=" + encodeURIComponent(date);
+      return `<a href="${href}" class="${cls}">${label}</a>`;
+    }
+    return `<div class="${cls}" aria-disabled="true">${label}</div>`;
   }).join("");
 
   renderMittagUpcoming();
