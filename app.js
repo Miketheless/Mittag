@@ -717,11 +717,13 @@ function renderMittagUpcoming() {
   const list = document.getElementById("mittag-upcoming-list");
   if (!section || !list) return;
 
+  list.innerHTML = '<p class="mittag-upcoming-loading">Menüs werden geladen…</p>';
+
   fetchMittagMenusUpcoming(4).then(menus => {
     const today = getTodayLocalYYYYMMDD();
     const future = menus.filter(m => m.date > today);
     if (future.length === 0) {
-      section.classList.add("hidden");
+      list.innerHTML = '<p class="mittag-upcoming-empty">Keine kommenden Menüs geladen. Backend neu bereitstellen?</p>';
       return;
     }
 

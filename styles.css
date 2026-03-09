@@ -3429,6 +3429,12 @@ a:focus-visible {
   font-style: italic;
   color: var(--color-text-muted);
 }
+.mittag-upcoming-loading,
+.mittag-upcoming-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 1rem 0;
+}
 
 /* Print Styles */
 @media print {
