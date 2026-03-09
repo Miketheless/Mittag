@@ -63,8 +63,24 @@ function fillMonthYearSelects() {
   });
 }
 
-async function fetchJson(url) {
-  const res = await fetch(url, { method: "GET", redirect: "follow" });
+async function fetchJson(url, options) {
+  const res = await fetch(url, { method: "GET", redirect: "follow", ...options });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    throw new Error("Backend antwortet nicht mit JSON. Prüfe SCRIPT_BASE und ob die Web-App neu bereitgestellt wurde.");
+  }
+}
+
+async function fetchPost(url, body) {
+  const formBody = new URLSearchParams(body).toString();
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formBody,
+    redirect: "follow"
+  });
   const text = await res.text();
   try {
     return JSON.parse(text);
@@ -84,17 +100,17 @@ async function fetchMenuMonth(adminKey, year, month) {
 }
 
 async function saveMenu(adminKey, data) {
-  const params = new URLSearchParams({
+  const body = {
     action: "mittag_admin_save_menu",
     admin_key: adminKey,
     date: data.date,
-    vorspeise: data.vorspeise,
-    hauptspeise: data.hauptspeise,
+    vorspeise: data.vorspeise || "",
+    hauptspeise: data.hauptspeise || "",
     preis_basis: String(data.preis_basis || 15),
     preis_rabatt: String(data.preis_rabatt || 12),
     aktiv: data.aktiv ? "true" : "false"
-  });
-  return fetchJson(SCRIPT_BASE + "?" + params.toString());
+  };
+  return fetchPost(SCRIPT_BASE, body);
 }
 
 async function fetchOverview(adminKey, dateId) {

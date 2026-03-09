@@ -114,6 +114,32 @@ function doGet(e) {
   }
 }
 
+function doPost(e) {
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonResponse({ ok: false, message: "Keine POST-Daten" });
+    }
+    const raw = e.postData.contents;
+    const params = {};
+    if (e.postData.type && e.postData.type.indexOf("json") >= 0) {
+      const data = JSON.parse(raw);
+      Object.assign(params, data);
+    } else {
+      raw.split("&").forEach(pair => {
+        const [k, v] = pair.split("=").map(s => decodeURIComponent((s || "").replace(/\+/g, " ")));
+        if (k) params[k] = v;
+      });
+    }
+    const action = params.action;
+    if (action === "mittag_admin_save_menu") {
+      return handleMittagAdminSaveMenu(params);
+    }
+  } catch (err) {
+    return jsonResponse({ ok: false, message: "Fehler: " + err.message });
+  }
+  return jsonResponse({ ok: false, message: "Unbekannte Aktion" });
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // MITTAG – ÖFFENTLICHE API
 // ══════════════════════════════════════════════════════════════════════════════
