@@ -622,7 +622,7 @@ function handleMittagAdminSaveMenu(params) {
   }
 
   if (existingRow > 0) {
-    sheet.getRange(existingRow, 2, existingRow, 7).setValues([[weekday, vorspeise, hauptspeise, preis_basis, preis_rabatt, aktiv]]);
+    sheet.getRange(existingRow, 2, 1, 6).setValues([[weekday, vorspeise, hauptspeise, preis_basis, preis_rabatt, aktiv]]);
   } else {
     sheet.appendRow([dateId, weekday, vorspeise, hauptspeise, preis_basis, preis_rabatt, aktiv]);
   }
