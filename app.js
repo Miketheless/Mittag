@@ -550,6 +550,10 @@ function initMittagBookingPage() {
     return;
   }
 
+  const dateStr = formatDateLong(date);
+  const dateTextEl = document.getElementById("selected-date-text");
+  if (dateTextEl) dateTextEl.textContent = dateStr + ", " + slotTime + " Uhr";
+
   const formSection = document.querySelector(".booking-form-section");
   const slotInfoCard = document.getElementById("slot-info-card");
   const participantsSection = document.querySelector(".participants-data-section");
