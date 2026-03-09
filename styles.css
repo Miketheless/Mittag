@@ -2655,6 +2655,29 @@ a:focus-visible {
   text-align: center;
 }
 
+.hero-price {
+  margin: 0.75rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+}
+.hero-price-value {
+  font-size: 1.5rem;
+}
+.hero-price-struck {
+  text-decoration: line-through;
+  opacity: 0.8;
+  margin-right: 0.5rem;
+}
+.hero-price-note {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
 /* Paket-Info Section */
 .paket-info {
   background: var(--color-bg-card);

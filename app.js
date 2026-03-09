@@ -487,6 +487,25 @@ function getTodayLocalYYYYMMDD() {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/** Vor 10:00 Uhr: 12 €, ab 10:00 Uhr: 15 € (zeitlich korrekt nach Lokalzeit) */
+function isRabattAktivLocal() {
+  const d = new Date();
+  const h = d.getHours();
+  const m = d.getMinutes();
+  return h < 10 || (h === 10 && m === 0);
+}
+
+function updateHeroPrice() {
+  const el = document.getElementById("hero-price");
+  if (!el) return;
+  const rabatt = isRabattAktivLocal();
+  if (rabatt) {
+    el.innerHTML = '<span class="hero-price-value">12 €</span> <span class="hero-price-note">bei Reservierung vor 10:00 Uhr</span>';
+  } else {
+    el.innerHTML = '<span class="hero-price-struck">12 €</span> <span class="hero-price-value">15 €</span>';
+  }
+}
+
 async function fetchMittagSlotsToday(dateStr) {
   const date = dateStr || getTodayLocalYYYYMMDD();
   try {
@@ -783,6 +802,8 @@ async function init() {
     if (newBtn) newBtn.addEventListener("click", () => { window.location.href = "index.html"; });
     initBookingPage();
   } else if (isMittagIndex) {
+    updateHeroPrice();
+    setInterval(updateHeroPrice, 60000);
     initMittag();
   } else if (isBookingPage) {
     showNoSlotError("Bitte wählen Sie zuerst einen Zeitslot auf der Startseite.");
