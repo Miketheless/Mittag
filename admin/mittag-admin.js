@@ -22,10 +22,13 @@ function getCalendarWeek(date) {
 
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "–";
-  const [y, m, d] = String(dateStr).trim().split("T")[0].split("-");
-  const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  const parts = String(dateStr).trim().split("T")[0].split("-");
+  if (parts.length < 3) return dateStr;
+  const [y, m, d] = parts;
+  const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+  if (isNaN(date.getTime())) return dateStr;
   const wd = WOCHENTAGE[date.getDay()] || "–";
-  return `${wd}, ${d.padStart(2, "0")}.${m.padStart(2, "0")}.${y}`;
+  return `${wd}, ${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y}`;
 }
 
 function fillMonthYearSelects() {

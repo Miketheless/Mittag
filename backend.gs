@@ -222,14 +222,21 @@ function handleMittagMenuToday() {
   });
 }
 
+function getWeekdayFromDateStr(dateStr) {
+  const m = String(dateStr || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return -1;
+  const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  return d.getDay();
+}
+
 function handleMittagSlotsToday(params) {
   let dateId = (params && params.date) ? String(params.date).trim().split("T")[0] : null;
   if (!dateId || !/^\d{4}-\d{2}-\d{2}$/.test(dateId)) {
     const now = new Date();
     dateId = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
   }
-  const dateObj = new Date(dateId);
-  if (!isMittagDay(dateObj)) {
+  const weekday = getWeekdayFromDateStr(dateId);
+  if (weekday < 0 || MITTAG_WEEKDAYS.indexOf(weekday) < 0) {
     return jsonResponse({ ok: true, date: dateId, slots: [], message: "An diesem Tag kein Mittagsmenü (Mi/Do/Fr)" });
   }
   const menu = getMittagMenuForDate(dateId);

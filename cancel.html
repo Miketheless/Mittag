@@ -128,8 +128,10 @@ async function processCancel() {
   }
   
   try {
-    const response = await fetch(`${SCRIPT_BASE}?action=cancel&token=${encodeURIComponent(token)}`);
-    const result = await response.json();
+    const response = await fetch(`${SCRIPT_BASE}?action=cancel&token=${encodeURIComponent(token)}`, { method: "GET", redirect: "follow" });
+    const text = await response.text();
+    let result;
+    try { result = JSON.parse(text); } catch (_) { result = { ok: false, message: "Ungültige Server-Antwort" }; }
     
     hideAll();
     
