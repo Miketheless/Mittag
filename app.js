@@ -504,6 +504,17 @@ async function fetchMittagSlotsToday(dateStr) {
   }
 }
 
+async function fetchMittagMenusUpcoming(weeks) {
+  try {
+    const res = await fetch(CONFIG.SCRIPT_BASE + "?action=mittag_menus_upcoming&weeks=" + (weeks || 4), { method: "GET", redirect: "follow" });
+    const data = await res.json();
+    return data.ok ? (data.menus || []) : [];
+  } catch (e) {
+    console.warn("Mittag upcoming API:", e.message);
+    return [];
+  }
+}
+
 function selectMittagSlot(slotTime, date) {
   const params = new URLSearchParams({ slot_time: slotTime, date: date || new Date().toISOString().slice(0, 10) });
   window.location.href = "buchen.html?" + params.toString();
@@ -666,6 +677,7 @@ async function initMittag() {
     noMenu.classList.remove("hidden");
     const p = noMenu.querySelector("p");
     if (p) p.textContent = (data.message || "Kein Mittagsmenü verfügbar.") + " Heute Mi/Do/Fr? Menü im Admin für dieses Datum angelegt?";
+    renderMittagUpcoming();
     return;
   }
 
@@ -696,6 +708,41 @@ async function initMittag() {
       : 'style="cursor:not-allowed; opacity:0.7;"';
     return `<div class="${cls}" ${attr}>${label}</div>`;
   }).join("");
+
+  renderMittagUpcoming();
+}
+
+function renderMittagUpcoming() {
+  const section = document.getElementById("mittag-upcoming-section");
+  const list = document.getElementById("mittag-upcoming-list");
+  if (!section || !list) return;
+
+  fetchMittagMenusUpcoming(4).then(menus => {
+    const today = getTodayLocalYYYYMMDD();
+    const future = menus.filter(m => m.date > today);
+    if (future.length === 0) {
+      section.classList.add("hidden");
+      return;
+    }
+
+    list.innerHTML = future.map(m => {
+      const menu = m.menu;
+      const hasMenu = menu && (menu.vorspeise || menu.hauptspeise);
+      const dateStr = formatDateLong(m.date);
+      const content = hasMenu
+        ? `<p class="mittag-upcoming-dish"><strong>Vorspeise:</strong> ${menu.vorspeise || "–"}</p>
+           <p class="mittag-upcoming-dish"><strong>Hauptspeise:</strong> ${menu.hauptspeise || "–"}</p>
+           <p class="mittag-upcoming-price">${menu.preis_basis || 15} €</p>`
+        : '<p class="mittag-upcoming-placeholder">Noch nicht geplant</p>';
+      return `
+        <div class="mittag-upcoming-card">
+          <div class="mittag-upcoming-date">${dateStr}</div>
+          <div class="mittag-upcoming-dishes">${content}</div>
+        </div>
+      `;
+    }).join("");
+    section.classList.remove("hidden");
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

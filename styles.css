@@ -3382,6 +3382,54 @@ a:focus-visible {
   color: var(--color-text-muted);
 }
 
+/* Mittag – kommende Menütage */
+.mittag-upcoming-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+.mittag-upcoming-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+}
+.mittag-upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.mittag-upcoming-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+.mittag-upcoming-date {
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+.mittag-upcoming-dishes {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+.mittag-upcoming-dish {
+  margin: 0.25rem 0;
+}
+.mittag-upcoming-price {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.mittag-upcoming-placeholder {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 /* Print Styles */
 @media print {
   .hero-price-badge,

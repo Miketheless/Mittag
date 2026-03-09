@@ -100,6 +100,7 @@ function doGet(e) {
   switch (action) {
     case "mittag_menu_today": return handleMittagMenuToday();
     case "mittag_slots_today": return handleMittagSlotsToday(e.parameter);
+    case "mittag_menus_upcoming": return handleMittagMenusUpcoming(e.parameter);
     case "mittag_book": return handleMittagBookViaGet(e.parameter.data);
     case "cancel": return handleCancel(e.parameter.token);
     case "mittag_admin_menu": return handleMittagAdminMenu(e.parameter);
@@ -264,6 +265,36 @@ function handleMittagSlotsToday(params) {
     menu: { vorspeise: menu.vorspeise, hauptspeise: menu.hauptspeise, preis, rabatt_aktiv: rabatt },
     slots
   });
+}
+
+/** Menüs für die nächsten N Wochen (Mi/Do/Fr) – öffentlich, keine Admin-Key */
+function handleMittagMenusUpcoming(params) {
+  const weeks = Math.min(12, Math.max(1, parseInt(params && params.weeks, 10) || 4));
+  const now = new Date();
+  const tz = Session.getScriptTimeZone();
+  const todayId = Utilities.formatDate(now, tz, "yyyy-MM-dd");
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() + 7 * weeks);
+
+  const menus = [];
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+
+  while (d.getTime() <= endDate.getTime()) {
+    const day = d.getDay();
+    if (MITTAG_WEEKDAYS.indexOf(day) >= 0) {
+      const dateId = Utilities.formatDate(d, tz, "yyyy-MM-dd");
+      const menu = getMittagMenuForDate(dateId);
+      const aktiv = menu && (menu.aktiv === true || menu.aktiv === "TRUE" || menu.aktiv === "x" || menu.aktiv === 1);
+      const menuData = aktiv && (menu.vorspeise || menu.hauptspeise)
+        ? { vorspeise: menu.vorspeise, hauptspeise: menu.hauptspeise, preis_basis: menu.preis_basis || MITTAG_PREIS_BASIS, preis_rabatt: menu.preis_rabatt || MITTAG_PREIS_RABATT }
+        : null;
+      menus.push({ date: dateId, weekday: day, menu: menuData });
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  return jsonResponse({ ok: true, menus });
 }
 
 function handleMittagBookViaGet(base64Data) {
