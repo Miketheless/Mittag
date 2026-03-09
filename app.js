@@ -500,9 +500,9 @@ function updateHeroPrice() {
   if (!el) return;
   const rabatt = isRabattAktivLocal();
   if (rabatt) {
-    el.innerHTML = '<span class="hero-price-value">12 €</span> <span class="hero-price-note">bei Reservierung vor 10:00 Uhr</span><span class="hero-price-info">Frühbucher-Rabatt – hilft uns bei der Planung der Küche.</span>';
+    el.innerHTML = '<span class="hero-price-label">2-Gängiges Menü</span><span class="hero-price-value">12 €</span> <span class="hero-price-note">bei Reservierung vor 10:00 Uhr</span><span class="hero-price-info">Frühbucher-Rabatt – hilft uns bei der Planung der Küche.</span>';
   } else {
-    el.innerHTML = '<span class="hero-price-struck">12 €</span> <span class="hero-price-value">15 €</span><span class="hero-price-info">Ab 10:00 Uhr gilt der reguläre Preis – spontane Gäste willkommen.</span>';
+    el.innerHTML = '<span class="hero-price-label">2-Gängiges Menü</span><span class="hero-price-struck">12 €</span> <span class="hero-price-value">15 €</span><span class="hero-price-info">Ab 10:00 Uhr gilt der reguläre Preis – spontane Gäste willkommen.</span>';
   }
 }
 
@@ -600,7 +600,7 @@ function initMittagBookingPage() {
       </div>
       <div class="order-summary-row">
         <span class="order-label">Menü:</span>
-        <span class="order-value">Mittagsmenü (Preis wird bei Buchung berechnet)</span>
+        <span class="order-value">2-Gängiges Mittagsmenü (12 € bzw. 15 € – Preis wird bei Buchung berechnet)</span>
       </div>
     `;
   }
@@ -717,10 +717,10 @@ async function initMittag() {
   const rabattAktiv = menu.rabatt_aktiv;
 
   if (rabattAktiv) {
-    priceWrapper.innerHTML = `<span class="mittag-price">${preisRabatt} €</span>`;
+    priceWrapper.innerHTML = `<span class="mittag-price-label">2-Gängiges Menü</span> <span class="mittag-price">${preisRabatt} €</span>`;
     document.getElementById("mittag-rabatt-badge").classList.remove("hidden");
   } else {
-    priceWrapper.innerHTML = `<span class="mittag-price mittag-price-struck">${preisRabatt} €</span> <span class="mittag-price">${preisBasis} €</span>`;
+    priceWrapper.innerHTML = `<span class="mittag-price-label">2-Gängiges Menü</span> <span class="mittag-price mittag-price-struck">${preisRabatt} €</span> <span class="mittag-price">${preisBasis} €</span>`;
     document.getElementById("mittag-rabatt-badge").classList.add("hidden");
   }
 
@@ -770,7 +770,7 @@ function renderMittagUpcoming() {
     list.innerHTML = future.map(m => {
       const menu = m.menu;
       const dateStr = formatDateLong(m.date);
-      const content = `<span class="mittag-upcoming-dish">${menu.vorspeise || "–"}</span> · <span class="mittag-upcoming-dish">${menu.hauptspeise || "–"}</span> · <span class="mittag-upcoming-price">${menu.preis_basis || 15} €</span>`;
+      const content = `<span class="mittag-upcoming-dish">${menu.vorspeise || "–"}</span> · <span class="mittag-upcoming-dish">${menu.hauptspeise || "–"}</span> · <span class="mittag-upcoming-price">2-Gängig <strong>${menu.preis_basis || 15} €</strong></span>`;
       const slotLinks = slotTimes.map(t => {
         const href = "buchen.html?slot_time=" + encodeURIComponent(t) + "&date=" + encodeURIComponent(m.date);
         return `<a href="${href}" class="mittag-upcoming-slot-link">${t}</a>`;

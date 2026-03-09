@@ -2662,8 +2662,17 @@ a:focus-visible {
   color: white;
   text-align: center;
 }
+.hero-price-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.95;
+  margin-bottom: 0.2rem;
+}
 .hero-price-value {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 .hero-price-struck {
   text-decoration: line-through;
@@ -3162,6 +3171,7 @@ a:focus-visible {
 .price-total strong {
   color: var(--color-primary);
   font-size: 1.5rem;
+  font-weight: 800;
 }
 
 .price-breakdown {
@@ -3378,11 +3388,17 @@ a:focus-visible {
   align-items: center;
   gap: 0.5rem;
 }
+.mittag-price-label {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
 .mittag-price {
   font-family: var(--font-headline);
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.25rem;
+  font-weight: 800;
   color: var(--color-primary);
+  letter-spacing: 0.02em;
 }
 .mittag-price-struck {
   text-decoration: line-through;
@@ -3391,8 +3407,12 @@ a:focus-visible {
 }
 .mittag-rabatt-hinweis {
   margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+.mittag-rabatt-hinweis strong {
+  color: var(--color-primary);
+  font-size: 1.05em;
 }
 .mittag-rabatt-badge {
   display: inline-block;
@@ -3481,9 +3501,12 @@ a.mittag-slot:hover {
   font-size: 0.85rem;
 }
 .mittag-upcoming-price {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-primary);
-  font-size: 0.9rem;
+  font-size: 1rem;
+}
+.mittag-upcoming-price strong {
+  font-size: 1.1em;
 }
 .mittag-upcoming-slots {
   display: inline-flex;
