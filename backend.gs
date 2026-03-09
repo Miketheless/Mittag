@@ -338,16 +338,17 @@ function handleMittagBook(payload) {
 
     const now = new Date();
     const todayId = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
-    if (dateId !== todayId) {
-      return jsonResponse({ ok: false, success: false, error: "Buchung nur für heute möglich" });
+    const weekday = getWeekdayFromDateStr(dateId);
+    if (weekday < 0 || MITTAG_WEEKDAYS.indexOf(weekday) < 0) {
+      return jsonResponse({ ok: false, success: false, error: "An diesem Tag kein Mittagsmenü (nur Mi/Do/Fr)" });
     }
-    if (!isMittagDay(now)) {
-      return jsonResponse({ ok: false, success: false, error: "Heute kein Mittagsmenü" });
+    if (dateId < todayId) {
+      return jsonResponse({ ok: false, success: false, error: "Buchung nur für heute oder zukünftige Tage möglich" });
     }
 
     const menu = getMittagMenuForDate(dateId);
     if (!menu) {
-      return jsonResponse({ ok: false, success: false, error: "Kein aktives Menü für heute" });
+      return jsonResponse({ ok: false, success: false, error: "Kein Menü für dieses Datum im Admin angelegt" });
     }
 
     const counts = getMittagBookingsCountBySlot(dateId);
@@ -356,7 +357,7 @@ function handleMittagBook(payload) {
       return jsonResponse({ ok: false, success: false, error: "Slot ausgebucht" });
     }
 
-    const rabatt = isRabattGueltig(now);
+    const rabatt = (dateId === todayId) && isRabattGueltig(now);
     const preis = rabatt ? menu.preis_rabatt : menu.preis_basis;
 
     const slotId = mittagSlotId(dateId, slotTime);

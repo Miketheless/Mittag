@@ -665,18 +665,14 @@ async function handleMittagSubmit(e) {
 
 async function initMittag() {
   const loading = document.getElementById("mittag-loading");
-  const noMenu = document.getElementById("mittag-no-menu");
   const content = document.getElementById("mittag-content");
 
-  if (!loading || !noMenu || !content) return;
+  if (!loading || !content) return;
 
   const data = await fetchMittagSlotsToday();
   loading.classList.add("hidden");
 
   if (!data.ok || !data.menu) {
-    noMenu.classList.remove("hidden");
-    const p = noMenu.querySelector("p");
-    if (p) p.textContent = (data.message || "Kein Mittagsmenü verfügbar.") + " Heute Mi/Do/Fr? Menü im Admin für dieses Datum angelegt?";
     renderMittagUpcoming();
     return;
   }
@@ -737,6 +733,7 @@ function renderMittagUpcoming() {
       return;
     }
 
+    const slotTimes = ["11:30", "12:00", "12:30", "13:00"];
     list.innerHTML = future.map(m => {
       const menu = m.menu;
       const hasMenu = menu && (menu.vorspeise || menu.hauptspeise);
@@ -746,10 +743,16 @@ function renderMittagUpcoming() {
            <p class="mittag-upcoming-dish"><strong>Hauptspeise:</strong> ${menu.hauptspeise || "–"}</p>
            <p class="mittag-upcoming-price">${menu.preis_basis || 15} €</p>`
         : '<p class="mittag-upcoming-placeholder">Noch nicht geplant</p>';
+      const slotLinks = hasMenu ? slotTimes.map(t => {
+        const href = "buchen.html?slot_time=" + encodeURIComponent(t) + "&date=" + encodeURIComponent(m.date);
+        return `<a href="${href}" class="mittag-upcoming-slot-link">${t} Uhr</a>`;
+      }).join(" ") : "";
+      const slotsHtml = slotLinks ? `<div class="mittag-upcoming-slots">Zeitslot wählen: ${slotLinks}</div>` : "";
       return `
         <div class="mittag-upcoming-card">
           <div class="mittag-upcoming-date">${dateStr}</div>
           <div class="mittag-upcoming-dishes">${content}</div>
+          ${slotsHtml}
         </div>
       `;
     }).join("");

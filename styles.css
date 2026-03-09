@@ -3447,6 +3447,27 @@ a.mittag-slot:hover {
   font-style: italic;
   color: var(--color-text-muted);
 }
+.mittag-upcoming-slots {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mittag-upcoming-slot-link {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.mittag-upcoming-slot-link:hover {
+  opacity: 0.9;
+}
 .mittag-upcoming-loading,
 .mittag-upcoming-empty {
   color: var(--color-text-muted);
