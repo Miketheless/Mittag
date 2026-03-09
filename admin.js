@@ -181,9 +181,9 @@ function renderFilter() {
 
 function renderBookings() {
   const filterWorkshop = $("filter-workshop").value;
-  let filtered = bookingsData;
+  let filtered = bookingsData.filter(b => !isPast(b.slot_date));
   if (filterWorkshop) {
-    filtered = bookingsData.filter(b => b.workshop_id === filterWorkshop);
+    filtered = filtered.filter(b => b.workshop_id === filterWorkshop);
   }
   
   const container = $("bookings-container");
@@ -402,9 +402,9 @@ function renderSlotsFilter() {
 
 function renderSlotsTable() {
   const filterWorkshop = $("filter-slots-workshop")?.value || "";
-  let filtered = slotsData;
+  let filtered = slotsData.filter(s => !isPast(s.date));
   if (filterWorkshop) {
-    filtered = slotsData.filter(s => s.workshop_id === filterWorkshop);
+    filtered = filtered.filter(s => s.workshop_id === filterWorkshop);
   }
   
   filtered.sort((a, b) => {

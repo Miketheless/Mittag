@@ -20,6 +20,15 @@ function getCalendarWeek(date) {
   return weekNo;
 }
 
+function isPastDate(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(String(dateStr).trim().split("T")[0]);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  return d < today;
+}
+
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "–";
   const parts = String(dateStr).trim().split("T")[0].split("-");
@@ -135,8 +144,9 @@ function renderRowEdit(m) {
 
 function renderMonthTable(menus) {
   const container = $("month-menu-container");
-  currentMenusData = menus;
-  if (!menus || menus.length === 0) {
+  const futureMenus = (menus || []).filter(m => !isPastDate(m.date));
+  currentMenusData = futureMenus;
+  if (futureMenus.length === 0) {
     container.innerHTML = '<p class="text-muted">Keine Mittagstage in diesem Monat.</p>';
     return;
   }
@@ -155,7 +165,7 @@ function renderMonthTable(menus) {
       <tbody>
   `;
 
-  for (const m of menus) {
+  for (const m of futureMenus) {
     const date = new Date(m.date);
     const kw = getCalendarWeek(date);
     if (kw !== lastKw) {
