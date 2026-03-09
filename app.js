@@ -557,7 +557,6 @@ function initMittagBookingPage() {
   const formSection = document.querySelector(".booking-form-section");
   const slotInfoCard = document.getElementById("slot-info-card");
   const participantsSection = document.querySelector(".participants-data-section");
-  const voucherSection = document.querySelector(".voucher-section");
 
   if (slotInfoCard) {
     slotInfoCard.innerHTML = `
@@ -572,7 +571,6 @@ function initMittagBookingPage() {
     const pInner = participantsSection.querySelector(".section-header");
     if (pInner) pInner.innerHTML = '<span class="section-icon">👤</span><h3>Ihre Angaben</h3>';
   }
-  if (voucherSection) voucherSection.style.display = "none";
 
   const participantsDiv = document.getElementById("participants");
   if (participantsDiv) {
@@ -582,6 +580,7 @@ function initMittagBookingPage() {
         <label>Nachname * <input type="text" name="last_name" id="last_name" required autocomplete="family-name"></label>
       </div>
       <div class="form-row">
+        <label>E-Mail * <input type="email" name="email" id="email" required autocomplete="email"></label>
         <label>Telefonnummer * <input type="tel" name="phone" id="phone" required placeholder="+43 660 1234567" autocomplete="tel"></label>
       </div>
     `;
@@ -632,12 +631,18 @@ async function handleMittagSubmit(e) {
   const btn = form.querySelector('button[type="submit"]');
   const first = (form.querySelector('[name="first_name"]')?.value || "").trim();
   const last = (form.querySelector('[name="last_name"]')?.value || "").trim();
+  const email = (form.querySelector('[name="email"]')?.value || "").trim();
   const phone = (form.querySelector('[name="phone"]')?.value || "").trim();
   const agb = form.querySelector('#agb_accepted')?.checked;
   const privacy = form.querySelector('#privacy_accepted')?.checked;
 
-  if (!first || !last || !phone) {
-    showMessage("Bitte alle Felder ausfüllen.", "error");
+  if (!first || !last || !email || !phone) {
+    showMessage("Bitte alle Pflichtfelder ausfüllen.", "error");
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showMessage("Bitte eine gültige E-Mail-Adresse eingeben.", "error");
     return;
   }
   if (!agb || !privacy) {
@@ -655,6 +660,7 @@ async function handleMittagSubmit(e) {
     const payload = {
       first_name: first,
       last_name: last,
+      email,
       phone,
       slot_time: slotTime,
       date,
@@ -672,7 +678,7 @@ async function handleMittagSubmit(e) {
         success.style.display = "block";
         document.getElementById("success-id").textContent = result.booking_id || "–";
         document.getElementById("success-date").textContent = formatDateLong(date) + ", " + slotTime + " Uhr";
-        document.getElementById("success-email").textContent = phone;
+        document.getElementById("success-email").textContent = email;
       }
       document.querySelector(".booking-form-section").style.display = "none";
       window.scrollTo({ top: 0, behavior: "smooth" });

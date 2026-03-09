@@ -322,12 +322,13 @@ function handleMittagBook(payload) {
 
     const first = (payload.first_name || "").toString().trim();
     const last = (payload.last_name || "").toString().trim();
+    const email = (payload.email || "").toString().trim();
     const phone = (payload.phone || "").toString().trim();
     const slotTime = (payload.slot_time || "").toString().trim();
     const dateId = (payload.date || "").toString().trim().split("T")[0];
 
-    if (!first || !last || !phone) {
-      return jsonResponse({ ok: false, success: false, error: "Vorname, Nachname und Telefon erforderlich" });
+    if (!first || !last || !email || !phone) {
+      return jsonResponse({ ok: false, success: false, error: "Vorname, Nachname, E-Mail und Telefon erforderlich" });
     }
     if (!payload.agb_accepted) {
       return jsonResponse({ ok: false, success: false, error: "AGB müssen akzeptiert werden" });
@@ -373,12 +374,13 @@ function handleMittagBook(payload) {
     ]);
 
     const participantsSheet = getSheet(SHEET_PARTICIPANTS);
-    participantsSheet.appendRow([bookingId, 1, first, last, "", phone]);
+    participantsSheet.appendRow([bookingId, 1, first, last, email, phone]);
 
     notifyN8nWebhook("mittag_booking", {
       booking_id: bookingId,
       first_name: first,
       last_name: last,
+      email,
       phone,
       slot_time: slotTime,
       date: dateId,
